@@ -1,0 +1,22 @@
+{
+  "run_server": {
+    "command": "sudo bash /home/elias-eriksson/Applications/McServer/runserver",
+    "regex_parse": ""
+  },
+  "stop_server": {
+    "command": "sudo bash /home/elias-eriksson/Applications/McServer/stopserver",
+    "regex_parse": ""
+  },
+  "sleep": {
+    "command": "sudo systemctl suspend",
+    "regex_parse": ""
+  },
+  "logged_in_users": {
+    "command": "who -u",
+    "regex_parse": ""
+  },
+  "ls": {
+    "command": "ls",
+    "regex_parse": ""
+  }
+}
