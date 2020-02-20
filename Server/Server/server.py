@@ -2,63 +2,98 @@ from typing import Union
 import socket
 import asyncio
 from . import client_wal
+from .errors import ClientWentAway
+
+
+def setup_socket(port: int = 6969) -> socket.socket:
+    sock = socket.socket()
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(("", port))
+    sock.setblocking(False)
+    sock.listen(1)
+    return sock
 
 
 class Server:
-    binding_details = ("", 1337)
-
-    def __init__(self, loop=None):
+    def __init__(self, loop=None) -> None:
         self.connection: Union[socket.socket, None] = None
-        self.socket = socket.socket()
-        self.socket.bind(self.binding_details)
-        self.socket.listen(1)
-        self.socket.setblocking(False)
+        self.socket = setup_socket()
         self.loop = loop if loop else asyncio.get_event_loop()
 
-    async def run_server(self):
-        client_wal()
-        await self._recieve()
-        await self._send(b"run_server")
-        await self._recieve()
+    async def run_server(self) -> str:
+        response = await self._run_command(b"run_server")
+        return response
 
-    async def stop_server(self):
-        await self._send(b"stop_server")
-        await self._recieve()
+    async def stop_server(self) -> str:
+        response = await self._run_command(b"stop_server")
+        return response
 
-    async def logged_in_users(self):
-        print("atempting to execute who on client ")
-        await self._send(b"logged_in_users")
-        return await self._recieve()
+    async def logged_in_users(self) -> str:
+        print("attempting to execute who on client ")
+        response = await self._run_command(b"logged_in_users")
+        return response
 
-    async def sleep(self):
-        await self._send(b"sleep")
-        # await self._recieve()
+    async def sleep(self) -> None:
+        print("attempting to sleep the client")
+        await self._run_command(b"sleep", False)
 
-    async def ls(self):
-        print("atempting to execute ls on client")
-        await self._send(b"ls")
-        return await self._recieve()
+    async def ls(self) -> str:
+        print("attempting to execute ls on client")
+        response = await self._run_command(b"ls")
+        return response
 
-    def _close(self):
+    async def disconnect(self) -> None:
+        print("disconnecting the current client")
+        await self._send(b"disconnect")
+        self.connection = None
+
+    async def await_connection(self):
+        while True:
+            if self.connection:
+                break
+            await asyncio.sleep(1)
+
+    async def _run_command(self, command: bytes, receive: bool = True) -> Union[str, None]:
+        while True:
+            try:
+                # could self._send error out if it sends to a connection that went away?
+                await self._send(command)
+                if receive:
+                    return await self._receive()
+                else:
+                    break
+            except ClientWentAway:
+                print("Client went away. ")
+                self.connection = None
+                client_wal()
+                print("waiting for client to reconnect.")
+                await self.await_connection()
+                print(f"client reconnected, attempting to run {command} again")
+
+    def _close(self) -> None:
         self.socket.close()
         self.connection = None
 
-    async def _send(self, data: bytes):
+    async def _send(self, data: bytes) -> None:
         print(f"server sent '{data}' to the client")
         await self.loop.sock_sendall(self.connection, data)
 
-    async def _recieve(self) -> str:
+    async def _receive(self) -> str:
         data = await self.loop.sock_recv(self.connection, 1024)
+        if data == b"":
+            raise ClientWentAway
+        print(f"server received '{data}' from the client")
         return data.decode("utf-8")
 
-    async def _accept_connection(self):
+    async def _accept_connection(self) -> None:
         print("server awaiting client for connection...")
-        self.connection, _ = await self.loop.sock_accept(self.socket)
-        print("server connected with the client, now waiting for client to send anything...")
-        data = await self._recieve()
-        print(f"recieved {data} from the server. now waiting for events on discord to proceed.")
+        connection, _ = await self.loop.sock_accept(self.socket)
+        if self.connection:
+            await self.disconnect()
+        self.connection = connection
+        print("server connected with a client, now waiting for events on discord to proceed...")
 
-    async def run(self):
+    async def run(self) -> None:
         try:
             while True:
                 await self._accept_connection()

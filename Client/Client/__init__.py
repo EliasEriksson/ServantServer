@@ -10,10 +10,4 @@ def load(filename: str) -> dict:
         return json.load(f)
 
 
-class DisconnectedFromServer(Exception):
-    pass
-
-
-
-
 commands = load("commands.json")
