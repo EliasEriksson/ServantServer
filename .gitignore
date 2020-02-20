@@ -129,5 +129,4 @@ dmypy.json
 .pyre/
 
 # Project specific
-discord_bot_token.json
-
+Server/discord_bot_token.json
