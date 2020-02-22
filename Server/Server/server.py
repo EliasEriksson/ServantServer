@@ -1,4 +1,4 @@
-from typing import Union, List, Callable, Coroutine
+from typing import Union, List, Coroutine
 import socket
 import asyncio
 from . import client_wol
@@ -18,47 +18,44 @@ def setup_socket(port: int = 6969) -> socket.socket:
 class Server:
     def __init__(self, loop=None, queue: bool = True) -> None:
         self.connection: Union[socket.socket, None] = None
+        self.connection_address: Union[str, None] = None
         self.socket = setup_socket()
         self.loop = loop if loop else asyncio.get_event_loop()
-        self.queue: Union[List[Callable[[], Coroutine[None, None, Union[str, None]]]], None] = [] if queue else None
+        self.queue: Union[List[partial[[], Coroutine[None, None, Union[str, None]]]], None] = [] if queue else None
 
     async def run_server(self) -> str:
-        response = await self._run_command(b"run_server")
-        return response
+        print("attempting to start the server on the client")
+        return await self._run_command_wrapper(b"run_server")
 
     async def stop_server(self) -> str:
-        response = await self._run_command(b"stop_server")
-        return response
+        print("attempting to stop the server on the client")
+        return await self._run_command_wrapper(b"stop_server")
 
     async def logged_in_users(self) -> str:
-        command = b"logged_in_users"
-        print("attempting to execute who on client ")
-        if self.queue is not None:
-            response = await self._run_command(b"logged_in_users")
-        else:
-            response = await self._add_command_to_queue(command)
-        return response
+        print("attempting to execute who on client")
+        return await self._run_command_wrapper(b"logged_in_users")
 
     async def sleep(self) -> None:
         print("attempting to sleep the client")
         await self._run_command(b"sleep", False)
 
     async def ls(self) -> str:
-        command = b"ls"
         print("attempting to execute ls on client")
-        if self.queue is not None:
-            response = await self._run_command(command)
-        else:
-            response = await self._add_command_to_queue(command)
-        return response
+        return await self._run_command_wrapper(b"ls")
 
     async def disconnect(self) -> None:
         print("disconnecting the current client")
         await self._send(b"disconnect")
         self.connection = None
+        self.connection_address = None
+        self._delete_queue()
 
-    async def _run_queue(self):
-        pass
+    async def _run_command_wrapper(self, command: bytes, receive: bool = False):
+        if self.queue is not None:
+            response = await self._run_command(command, receive)
+        else:
+            response = await self._add_command_to_queue(command, receive)
+        return response
 
     async def _run_command(self, command: bytes, receive: bool = True) -> Union[str, None]:
         print()
@@ -92,7 +89,7 @@ class Server:
                 break
             await asyncio.sleep(1)
 
-    async def _run_queued_command(self, func: Callable[[], Coroutine[None, None, Union[str, None]]]) -> str:
+    async def _run_queued_command(self, func: partial[[], Coroutine[None, None, Union[str, None]]]) -> str:
         print("awaiting new connection from client before running queued command")
         while True:
             if self.connection:
@@ -102,7 +99,7 @@ class Server:
                 print(f"command not next in line, sleeping and waiting for this commands turn")
             await asyncio.sleep(1)
 
-    async def _add_command_to_queue(self, command: bytes, receive: bool = False):
+    async def _add_command_to_queue(self, command: bytes, receive: bool):
         print(f"adding command {command.decode('utf-8')} to the command queue")
         func = partial(self._run_command, command, receive)
         self.queue.append(func)
@@ -113,6 +110,7 @@ class Server:
     def _close(self) -> None:
         self.socket.close()
         self.connection = None
+        self.connection_address = None
 
     async def _send(self, data: bytes) -> None:
         if self.connection:
@@ -136,11 +134,19 @@ class Server:
 
     async def _accept_connection(self) -> None:
         print("server awaiting client for connection...")
-        connection, _ = await self.loop.sock_accept(self.socket)
+        connection, connection_address = await self.loop.sock_accept(self.socket)
         if self.connection:
             await self.disconnect()
+        elif self.connection_address == connection_address:
+            self._delete_queue()
+
         self.connection = connection
+        self.connection_address = connection_address
         print("server connected with a client, now waiting for events on discord to proceed...")
+
+    def _delete_queue(self):
+        if self.queue is not None:
+            self.queue = []
 
     async def run(self) -> None:
         try:
