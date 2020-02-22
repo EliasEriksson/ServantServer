@@ -12,7 +12,7 @@ def load(filename: str) -> dict:
         return json.load(f)
 
 
-def client_wal():
+def client_wol():
     send_magic_packet(DESKTOP_MAC)
 
 
