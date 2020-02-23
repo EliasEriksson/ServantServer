@@ -5,7 +5,7 @@ import json
 
 
 if __name__ == '__main__':
-    watcher = Watcher(settings["activity_name"])
+    watcher = Watcher(settings)
     with Path("discord_bot_token.json").open() as file:
         bot_token = json.load(file)
     watcher.run(bot_token)
