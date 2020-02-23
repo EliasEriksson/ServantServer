@@ -174,11 +174,12 @@ class Server:
             data = await self.loop.sock_recv(connection, 1024)
         else:
             data = await self.loop.sock_recv(self.connection, 1024)
+
         if data == Communication.disconnected:
             raise ClientWentAway
         elif data == Communication.commands_success:
-            # TODO implement
-            pass
+            return "Command was successfully executed on the client"
+
         if connection:
             return data
         else:
