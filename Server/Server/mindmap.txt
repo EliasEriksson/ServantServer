@@ -1,0 +1,12 @@
+om desktop är av
+    server skickar WOL
+    client uprättar en anslutning
+    client skickar b'pulse'
+    server tar emot pulse
+    server skickar startserver commando till client
+    client tar emot commando om start server
+    client utför commando och skickar tillbaka svar till servern
+    servern tar emot svaret från servern men gör inget med det
+
+om desktop är på
+    client upprättar en anslutning

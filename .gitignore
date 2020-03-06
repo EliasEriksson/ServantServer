@@ -127,4 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-.idea
+
+# Project specific
+Server/discord_bot_token.json

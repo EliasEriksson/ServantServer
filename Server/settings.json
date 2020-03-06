@@ -1,0 +1,12 @@
+{
+  "ip": "",
+  "port": 6090,
+  "activity_name": "mgba",
+  "commands": {
+    "start_server": "^(.*)$",
+    "stop_server": "^(.*)$",
+    "sleep": "^(.*)$",
+    "logged_in_users": "^([a-z_](?:[a-z0-9_-]|[a-z0-9_-])*)+\\s",
+    "ls": "^(.*)$"
+  }
+}

@@ -1,0 +1,2 @@
+class ClientWentAway(Exception):
+    pass
