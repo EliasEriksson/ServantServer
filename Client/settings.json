@@ -5,8 +5,10 @@
   "commands": {
     "start_server": "sudo bash /home/elias-eriksson/Applications/McServer/runserver",
     "stop_server": "sudo bash /home/elias-eriksson/Applications/McServer/stopserver",
+    "": "",
     "sleep": "sudo systemctl suspend",
     "logged_in_users": "who -u",
+    "is_server_running": "sudo screen -ls",
     "ls": "ls"
   }
 }

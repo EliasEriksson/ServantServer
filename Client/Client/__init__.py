@@ -17,7 +17,8 @@ connection_details = (settings["ip"], settings["port"])
 
 class Communication:
     disconnected = b""
-    commands_success = 0
-    command_not_found = 1
-    disconnect = 2
+    commands_success = b"0"
+    command_not_found = b"1"
+    disconnect = b"2"
+    provide_mac = b"3"
     commands = tuple(commands.keys())

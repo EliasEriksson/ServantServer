@@ -5,7 +5,7 @@
   "commands": {
     "start_server": "^(.*)$",
     "stop_server": "^(.*)$",
-    "sleep": "",
+    "sleep": "^(.*)$",
     "logged_in_users": "^([a-z_](?:[a-z0-9_-]|[a-z0-9_-])*)+\\s",
     "ls": "^(.*)$"
   }

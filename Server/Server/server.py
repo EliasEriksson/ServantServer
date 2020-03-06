@@ -1,12 +1,12 @@
 from typing import *
 import socket
 import asyncio
-from . import client_wol
 from . import Communication
 from . import binding_details
 from . import commands
 from .errors import ClientWentAway
 from functools import partial
+from wakeonlan import send_magic_packet
 import re
 
 
@@ -51,7 +51,8 @@ class Server:
     def __init__(self, loop=None) -> None:
         self.commands = commands
         self.connection: Union[socket.socket, None] = None
-        self.connection_address: Union[str, None] = None
+        self.connection_ip_address: Union[str, None] = None
+        self.connection_mac_address: Union[str, None] = None
         self.socket = setup_socket()
         self.loop = loop if loop else asyncio.get_event_loop()
         self.queue: List[Callable[[], Coroutine[None, None, Union[str, None]]]] = []
@@ -94,7 +95,7 @@ class Server:
         except ClientWentAway:
             if self.connection:
                 self.connection = None
-                client_wol()
+                send_magic_packet(self.connection_mac_address)
             return await self._add_command_to_queue(command, receive)
 
     async def _add_command_to_queue(self, command: bytes, receive: bool) -> str:
@@ -134,30 +135,32 @@ class Server:
         if a new client than before reconnects the command queue will be cleared
         :return: None
         """
-        connection, connection_address = await self.loop.sock_accept(self.socket)
+        connection, connection_ip_address = await self.loop.sock_accept(self.socket)
         communication = await self._receive(connection)
         if self.communication == communication:
+            await self._send(Communication.provide_mac, connection)
+            connection_mac_address = await self._receive(connection)
             if self.connection:
                 print("disconnected the client")
                 await self._disconnect()
-            elif self.connection_address == connection_address:
+            elif self.connection_ip_address == connection_ip_address:
                 self._delete_queue()
-            self.connection = connection
-            self.connection_address = connection_address
+            self.set_connection(connection, connection_ip_address, connection_mac_address)
             print("server connected with a client")
         else:
             print("client who attempted to connect is not using compatible communications")
 
-    async def _send(self, data: bytes) -> None:
+    async def _send(self, data: bytes, connection: Union[socket.socket, None] = None) -> None:
         """
         sends given data to the currently connected client
 
         :param data: bytes, a command or response code
         :return: None
         """
-        if self.connection:
+        if self.connection or connection:
             try:
-                await self.loop.sock_sendall(self.connection, data)
+                print(data)
+                await self.loop.sock_sendall(connection if connection else self.connection, data)
             except BrokenPipeError:
                 raise ClientWentAway
         else:
@@ -214,8 +217,14 @@ class Server:
         """
         await self._send(Communication.disconnect)
         self.connection = None
-        self.connection_address = None
+        self.connection_ip_address = None
+        self.connection_mac_address = None
         self._delete_queue()
+
+    def set_connection(self, connection: socket.socket, ip: str, mac: str):
+        self.connection = connection
+        self.connection_ip_address = ip
+        self.connection_mac_address = mac
 
     def _close(self) -> None:
         """
@@ -225,7 +234,8 @@ class Server:
         """
         self.socket.close()
         self.connection = None
-        self.connection_address = None
+        self.connection_ip_address = None
+        self.connection_mac_address = None
 
     async def run(self) -> None:
         """
