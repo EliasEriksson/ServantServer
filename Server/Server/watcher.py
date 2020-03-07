@@ -21,20 +21,15 @@ class Watcher(discord.Client):
         pass
 
     async def on_member_update(self, before: discord.Member, after: discord.Member):
-        if any([contains_activity(self.activity_name, member)
-                for member in self.get_guild(after.guild).members]):
-
-
-
-
-
-        if contains_activity(self.activity_name, before):
-            # stopped using tracked activity
+        if not any([contains_activity(self.activity_name, member)
+                    for guild in self.guilds
+                    for member in guild.members]):
+            # if not any member in any guild is currently doing tracked activity
             users = await self.server.run_command("logged_in_users")
-            await before.send(users)
+            if not users:
+                players = await self.server.run_command("")
+                await self.server.run_command("stop_server")
+        else:
+            pass
 
-        if contains_activity(self.activity_name, after):
-            # started using tracked activity
-            ls = await self.server.run_command("sleep")
-            await before.send(ls)
 

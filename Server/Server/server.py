@@ -148,7 +148,9 @@ class Server:
             self.set_connection(connection, connection_ip_address, connection_mac_address)
             print("server connected with a client")
         else:
-            print("client who attempted to connect is not using compatible communications")
+            print(f"client who attempted to connect is not using compatible communications\n"
+                  f"server communication: {self.communication}\n"
+                  f"client communication: {communication}")
 
     async def _send(self, data: bytes, connection: Union[socket.socket, None] = None) -> None:
         """
@@ -166,7 +168,7 @@ class Server:
         else:
             raise ClientWentAway
 
-    async def _receive(self, connection: Union[socket.socket, None] = None) -> str:
+    async def _receive(self, connection: Union[socket.socket, None] = None) -> Union[str, bytes]:
         """
         receives a response from the client with the result from the executed command
 

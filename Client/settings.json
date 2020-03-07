@@ -3,9 +3,10 @@
   "port": 6090,
 
   "commands": {
-    "start_server": "sudo bash /home/elias-eriksson/Applications/McServer/runserver",
-    "stop_server": "sudo bash /home/elias-eriksson/Applications/McServer/stopserver",
-    "": "",
+    "start_server": "/home/elias-eriksson/Applications/McServer/server.py --start",
+    "stop_server": "/home/elias-eriksson/Applications/McServer/server.py --stop",
+    "read_server": "/home/elias-eriksson/Applications/McServer/server.py --read",
+    "list_players": "/home/elias-eriksson/Applications/McServer/server.py --execute list",
     "sleep": "sudo systemctl suspend",
     "logged_in_users": "who -u",
     "is_server_running": "sudo screen -ls",
