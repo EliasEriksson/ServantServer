@@ -1,15 +1,15 @@
 {
-  "ip": "127.0.0.1",
+  "ip": "192.168.1.73",
   "port": 6090,
 
   "commands": {
-    "start_server": "/home/elias-eriksson/Applications/McServer/server.py --start",
-    "stop_server": "/home/elias-eriksson/Applications/McServer/server.py --stop",
-    "read_server": "/home/elias-eriksson/Applications/McServer/server.py --read",
-    "list_players": "/home/elias-eriksson/Applications/McServer/server.py --execute list",
+    "start_server": "systemctl start mcserver.service",
+    "stop_server": "systemctl stop mcserver.service",
+
     "sleep": "sudo systemctl suspend",
     "logged_in_users": "who -u",
-    "is_server_running": "sudo screen -ls",
-    "ls": "ls"
+
+    "ls": "ls",
+    "connections": "netstat --tcp --numeric-ports"
   }
 }

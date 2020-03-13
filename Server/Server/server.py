@@ -176,9 +176,9 @@ class Server:
         :return: str, parsed response from executed command from the client
         """
         if connection:
-            data = await self.loop.sock_recv(connection, 1024)
+            data = await self.loop.sock_recv(connection, 4096)
         else:
-            data = await self.loop.sock_recv(self.connection, 1024)
+            data = await self.loop.sock_recv(self.connection, 4096)
 
         if data == Communication.disconnected:
             raise ClientWentAway
@@ -201,7 +201,7 @@ class Server:
         if response:
             if match := re.search(self.commands[command], response, re.DOTALL):
                 return " ".join(match.groups())
-        return "could not parse the response"
+        return ""
 
     def _delete_queue(self) -> None:
         """

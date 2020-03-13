@@ -103,7 +103,7 @@ class Client:
         it will be sent back to the server
         :return: None
         """
-        data = await self.loop.sock_recv(self.socket, 1024)
+        data = await self.loop.sock_recv(self.socket, 4096)
         if data == Communication.disconnected:
             raise ConnectionLostFromServer
         elif data == Communication.disconnect:
