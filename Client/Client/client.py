@@ -153,6 +153,14 @@ class Client:
                 await self.connect()
         except DisconnectedFromServer:
             print("client was disconnected from the server.")
+        except OSError as e:
+            if e.errno == 113:
+                print(f"there is no server to connect with using given connection details: "
+                      f"{connection_details}, either wrong details were given, "
+                      f"no server is running or fire wall is blocking the connection.")
+            else:
+                raise e
+
         except Exception as e:
             self.close()
             raise e

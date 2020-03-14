@@ -48,7 +48,7 @@ class Server:
     and is parsed for further processing
     """
 
-    def __init__(self, loop=None) -> None:
+    def __init__(self, loop=None, monitor_communication=True) -> None:
         self.commands = commands
         self.connection: Union[socket.socket, None] = None
         self.connection_ip_address: Union[str, None] = None
@@ -57,6 +57,7 @@ class Server:
         self.loop = loop if loop else asyncio.get_event_loop()
         self.queue: List[Callable[[], Coroutine[None, None, Union[str, None]]]] = []
         self.communication = communication_signature(Communication)
+        self.monitor_communication = monitor_communication
 
     async def run_command(self, command: str) -> str:
         """
@@ -159,9 +160,11 @@ class Server:
         :param data: bytes, a command or response code
         :return: None
         """
+        if self.monitor_communication:
+            print(f"\nsending:\n{data}")
+
         if self.connection or connection:
             try:
-                print(data)
                 await self.loop.sock_sendall(connection if connection else self.connection, data)
             except BrokenPipeError:
                 raise ClientWentAway
@@ -175,6 +178,7 @@ class Server:
         :param connection: socket.socket, the currently connected client
         :return: str, parsed response from executed command from the client
         """
+
         if connection:
             data = await self.loop.sock_recv(connection, 4096)
         else:
@@ -184,6 +188,9 @@ class Server:
             raise ClientWentAway
         elif data == Communication.commands_success:
             return "Command was successfully executed on the client"
+
+        if self.monitor_communication:
+            print(f"receive raw:\n{data}")
 
         if connection:
             return data
@@ -200,7 +207,10 @@ class Server:
         """
         if response:
             if match := re.search(self.commands[command], response, re.DOTALL):
-                return " ".join(match.groups())
+                matches = " ".join(match.groups())
+                if self.monitor_communication:
+                    print(f"receive parsed:\n{matches}")
+                return matches
         return ""
 
     def _delete_queue(self) -> None:

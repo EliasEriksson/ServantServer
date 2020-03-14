@@ -1,10 +1,11 @@
 {
-  "ip": "192.168.1.73",
+  "ip": "127.0.0.1",
   "port": 6090,
 
   "commands": {
     "start_server": "systemctl start mcserver.service",
     "stop_server": "systemctl stop mcserver.service",
+    "read_log": "tail /home/server/Applications/McServer/logs/latest.log 5",
 
     "sleep": "sudo systemctl suspend",
     "logged_in_users": "who -u",
