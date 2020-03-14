@@ -26,10 +26,9 @@ class Watcher(discord.Client):
                     for member in guild.members]):
             # if not any member in any guild is currently doing tracked activity
             users = await self.server.run_command("logged_in_users")
+            print(users)
             if not users:
-                players = await self.server.run_command("")
-                await self.server.run_command("stop_server")
+                pass
         else:
-            pass
-
-
+            result = await self.server.run_command("read_server")
+            print(result)
