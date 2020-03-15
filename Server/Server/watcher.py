@@ -39,7 +39,8 @@ class Watcher(discord.Client):
         if anyone is playing the game (on discord)
         """
         if not await self.server.run_command("logged_in_users"):
-            if await self.server.run_command("connections"):
+            connections = await self.server.run_command("connections")
+            if connections:
                 if not any([contains_activity(self.activity_name, member)
                             for guild in self.guilds
                             for member in guild.members]):
