@@ -39,10 +39,13 @@ class Watcher(discord.Client):
         if anyone is playing the game (on discord)
         """
         if not await self.server.run_command("logged_in_users"):
+            print("there are still users logged in")
             if await self.server.run_command("connections"):
+                print("there are still connections to the server")
                 if not any([contains_activity(self.activity_name, member)
                             for guild in self.guilds
                             for member in guild.members]):
+                    print("there are still players playing the game on discord")
                     return True
         return False
 
@@ -52,9 +55,12 @@ class Watcher(discord.Client):
 
         after the countdown a second set of checks is made to ensure that its safe to shutdown
         """
+        print("initiates shutdown")
         await asyncio.sleep(320)
         # TODO edit parsing for read_log in server/settings.json
+        print("shutdown wait finished, double checking one last time....")
         if await self.safe_to_shutdown() and not self.server.run_command("read_log"):
+            print("putting client to sleep")
             await self.server.run_command("sleep")
 
     def cancel_shutdown(self):
@@ -62,6 +68,7 @@ class Watcher(discord.Client):
         cancels a shutdown if there is one scheduled
         """
         if self._scheduled_shutdown:
+            print("scheduled shutdown detected and stopped")
             self._scheduled_shutdown.cancel()
             self._scheduled_shutdown = None
 
@@ -81,7 +88,7 @@ class Watcher(discord.Client):
             except (asyncio.CancelledError, TypeError):
                 # shutdown was canceled during or before initiation
                 # the cleanup is handled in self.cancel_shutdown as that executes synchronously
-                print("shutdown canceled")
+                print("the initiated shutdown did not finish")
         else:
             # making sure the server is not shutting down and if it is cancel the shutdown
             # sending any command to make sure the client is awake
