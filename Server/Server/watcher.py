@@ -39,14 +39,17 @@ class Watcher(discord.Client):
         if anyone is playing the game (on discord)
         """
         if not await self.server.run_command("logged_in_users"):
-            print("there are still users logged in")
             if await self.server.run_command("connections"):
-                print("there are still connections to the server")
                 if not any([contains_activity(self.activity_name, member)
                             for guild in self.guilds
                             for member in guild.members]):
-                    print("there are still players playing the game on discord")
                     return True
+                else:
+                    print("there are still players playing the game on discord")
+            else:
+                print("there are still connections to the server")
+        else:
+            print("there are still users logged in")
         return False
 
     async def initiate_shutdown(self):
