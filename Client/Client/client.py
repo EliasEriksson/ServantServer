@@ -141,6 +141,9 @@ class Client:
             print("disconnected from the client, attempting reconnection")
             self.socket = setup_socket()
             await asyncio.sleep(3)
+        except TimeoutError:
+            print('Timed out, no server to connect to, another attempt in 3 seconds')
+            await asyncio.sleep(3)
 
     async def run(self) -> None:
         """
