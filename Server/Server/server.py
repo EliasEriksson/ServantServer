@@ -64,7 +64,7 @@ class Server:
         send_magic_packet(self.connection_mac_address)
 
     def is_client_awake(self) -> bool:
-        if self.connection:
+        if self.connection and self.connection_mac_address:
             return True
         return False
 
