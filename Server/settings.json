@@ -8,6 +8,8 @@
     "stop_server": "^(.*)$",
     "read_log": "\\[\\d{2}:\\d{2}:\\d{2}\\]\\s+\\[Server\\s+thread/INFO\\]:\\sSaved\\sthe\\sgame",
 
+    "disallow_sleep": "^(.*)$",
+    "allow_sleep": "^(.*)$",
     "sleep": "^(.*)$",
     "logged_in_users": "^([a-z_](?:[a-z0-9_-]|[a-z0-9_-])*)+\\s",
 

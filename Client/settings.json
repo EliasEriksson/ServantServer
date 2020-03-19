@@ -7,6 +7,8 @@
     "stop_server": "systemctl stop mcserver.service",
     "read_log": "tail /home/server/Applications/McServer/logs/latest.log 5",
 
+    "disallow_sleep": "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target",
+    "allow_sleep": "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target",
     "sleep": "sudo systemctl suspend",
     "logged_in_users": "who -u",
 

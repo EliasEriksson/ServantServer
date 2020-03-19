@@ -40,7 +40,7 @@ class Watcher(discord.Client):
         """
         if not await self.server.run_command("logged_in_users"):
             connections = await self.server.run_command("connections")
-            if connections:
+            if not connections:
                 if not any([contains_activity(self.activity_name, member)
                             for guild in self.guilds
                             for member in guild.members]):
@@ -65,6 +65,7 @@ class Watcher(discord.Client):
         print("shutdown wait finished, double checking one last time....")
         if await self.safe_to_shutdown() and not self.server.run_command("read_log"):
             print("putting client to sleep")
+            await self.server.run_command("allow_sleep")
             await self.server.run_command("sleep")
 
     def cancel_shutdown(self):
@@ -76,7 +77,7 @@ class Watcher(discord.Client):
             self._scheduled_shutdown.cancel()
             self._scheduled_shutdown = None
 
-    async def on_member_update(self, *_):
+    async def attempt_shutdown(self):
         """
         checks weather the game server should be alive or if the servant/client should be put to sleep
 
@@ -97,9 +98,17 @@ class Watcher(discord.Client):
             # making sure the server is not shutting down and if it is cancel the shutdown
             # sending any command to make sure the client is awake
             self.cancel_shutdown()
-            await self.server.run_command("ls")
+            if not self.server.is_client_awake():
+                self.server.wake_client()
+                await self.server.run_command("disallow_sleep")
+
+    async def on_member_update(self, *_):
+        await self.attempt_shutdown()
 
     async def on_ready(self):
         print("Ready.")
         await self.server.run()
+        while True:
+            await asyncio.sleep(300)
+            await self.attempt_shutdown()
 

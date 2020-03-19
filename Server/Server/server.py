@@ -48,7 +48,7 @@ class Server:
     and is parsed for further processing
     """
 
-    def __init__(self, loop=None, monitor_communication=True) -> None:
+    def __init__(self, loop=None, monitor_communication=True, auto_wake_client=True) -> None:
         self.commands = commands
         self.connection: Union[socket.socket, None] = None
         self.connection_ip_address: Union[str, None] = None
@@ -58,6 +58,15 @@ class Server:
         self.queue: List[Callable[[], Coroutine[None, None, Union[str, None]]]] = []
         self.communication = communication_signature(Communication)
         self.monitor_communication = monitor_communication
+        self.auto_wake_client = auto_wake_client
+
+    def wake_client(self):
+        send_magic_packet(self.connection_mac_address)
+
+    def is_client_awake(self) -> bool:
+        if self.connection:
+            return True
+        return False
 
     async def run_command(self, command: str) -> str:
         """
@@ -96,7 +105,8 @@ class Server:
         except ClientWentAway:
             if self.connection:
                 self.connection = None
-                send_magic_packet(self.connection_mac_address)
+                if self.auto_wake_client:
+                    self.wake_client()
             return await self._add_command_to_queue(command, receive)
 
     async def _add_command_to_queue(self, command: bytes, receive: bool) -> str:
